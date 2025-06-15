@@ -19,17 +19,11 @@ function renderWheel() {
 
 // === ROTATION BUTTONS ===
 function setupRotationButtons() {
-  const buttons = [
-    { id: 'rotate-left-1', value: -1 },
-    { id: 'rotate-left-4', value: -4 },
-    { id: 'rotate-left-10', value: -10 },
-    { id: 'rotate-right-1', value: 1 },
-    { id: 'rotate-right-4', value: 4 },
-    { id: 'rotate-right-10', value: 10 },
-  ];
-  buttons.forEach(btn => {
-    document.getElementById(btn.id)?.addEventListener('click', () => {
-      currentRotation = (currentRotation + btn.value + wheelConfig.globalDivisionCount) % wheelConfig.globalDivisionCount;
+  document.querySelectorAll('[data-rotate]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const step = Number(btn.dataset.rotate);
+      currentRotation = (currentRotation + step + wheelConfig.globalDivisionCount) %
+                        wheelConfig.globalDivisionCount;
       renderWheel();
     });
   });
@@ -37,15 +31,11 @@ function setupRotationButtons() {
 
 // === T6 DATASET SWITCHING ===
 function setupT6Buttons() {
-  const options = wheelConfig.availableSources || [];
-  options.forEach(source => {
-    const button = document.getElementById(`t6-${source}`);
-    if (button) {
-      button.addEventListener('click', () => {
-        wheelConfig.tiers[6].labelListSource = source;
-        renderWheel();
-      });
-    }
+  document.querySelectorAll('[data-t6]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      wheelConfig.tiers[6].labelListSource = btn.dataset.t6;
+      renderWheel();
+    });
   });
 }
 
