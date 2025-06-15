@@ -104,7 +104,7 @@ const tiers = [
     innerRadius: 60,
     outerRadius: 120,
     rotationLocked: false,
-    divisionWeights: [5, 3, 3, 3, 3, 3, 3, 3, 3, 4],
+    divisionWeights: [20, 12, 12, 12, 12, 12, 12, 12, 12, 16],
     labelList: [
       "Fight", "Fight ↔ Flight", "Flight", "Flight ↔ Freeze",
       "Freeze", "Freeze ↔ Flop", "Flop", "Flop ↔ Friend",
