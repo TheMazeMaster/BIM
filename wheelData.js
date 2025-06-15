@@ -1,10 +1,10 @@
 // === wheelData.js — BIM Masterwheel Data ===
 
-import quotes from './quotes.js';
-import emotions from './emotion.js';
-import tone from './tone.js';
-import behavior from './behavior.js';
-import thriveCounterQuote from './thriveCounter.js';
+import { quotes } from './quotes.js';
+import { emotion } from './emotion.js';
+import { tone } from './tone.js';
+import { behaviorDescriptions } from './behavior.js';
+import { thriveCounter } from './thriveCounter.js';
 
 export const wheelData = {
   // T0–T2: Single labels
@@ -51,8 +51,8 @@ export const wheelData = {
 
   // T6 variants
   quotes,
-  emotions,
+  emotions: emotion,
   tone,
-  behavior,
-  thriveCounterQuote
+  behaviorDescriptions,
+  thriveCounter
 };
