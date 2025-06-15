@@ -160,3 +160,13 @@ This document is the ground truth blueprint. Feed this to any AI code engine, an
 
 Next steps: None. System complete. Ready to build.
 
+🚀 Local Preview
+
+Use a simple HTTP server to view the wheel locally:
+
+```bash
+python3 -m http.server
+```
+
+Then open [http://localhost:8000/index.html](http://localhost:8000/index.html) in your browser.
+
