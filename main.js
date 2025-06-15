@@ -27,6 +27,11 @@ function renderWheel() {
   if (Array.isArray(wheelConfig.overlays)) {
     drawOverlays(svg, wheelConfig.overlays, centerX, centerY, defs);
   }
+
+  // Draw any global overlays after tiers
+  if (Array.isArray(wheelConfig.overlays)) {
+    drawOverlays(svg, wheelConfig.overlays, centerX, centerY, defs);
+  }
 }
 
 // === ROTATION BUTTONS ===
