@@ -229,7 +229,7 @@ const tiers = [
     rotationLocked: false,
     divisionWeights: Array(132).fill(1),
     labelListSource: "quotes",
-    availableSources: ["quotes", "emotions", "tone", "behavior", "thriveCounterQuote"],
+    availableSources: ["quotes", "emotion", "tone", "behavior", "thriveCounter"],
     labelStyle: {
       type: "radial",
       fontSize: 5,
@@ -277,5 +277,5 @@ export const wheelConfig = {
   renderOptions,
   tiers,
   overlays,
-  availableSources: ["quotes", "emotions", "tone", "behavior", "thriveCounterQuote"]
+  availableSources: ["quotes", "emotion", "tone", "behavior", "thriveCounter"]
 };
