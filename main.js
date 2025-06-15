@@ -1,0 +1,193 @@
+// === MAIN.JS: BIM MASTERWHEEL RENDER ENGINE ===
+
+import { wheelConfig } from './config.js';
+import { wheelData } from './wheelData.js';
+
+const svg = document.getElementById('dim-wheel');
+let currentRotation = 0;
+
+// === RENDER ENTRY POINT ===
+function renderWheel() {
+  svg.innerHTML = ''; // Clear canvas
+  const centerX = wheelConfig.centerX;
+  const centerY = wheelConfig.centerY;
+
+  for (let i = 0; i < wheelConfig.tiers.length; i++) {
+    drawTier(svg, wheelConfig.tiers[i], i, centerX, centerY, currentRotation);
+  }
+}
+
+// === ROTATION BUTTONS ===
+function setupRotationButtons() {
+  const buttons = [
+    { id: 'rotate-left-1', value: -1 },
+    { id: 'rotate-left-4', value: -4 },
+    { id: 'rotate-left-10', value: -10 },
+    { id: 'rotate-right-1', value: 1 },
+    { id: 'rotate-right-4', value: 4 },
+    { id: 'rotate-right-10', value: 10 },
+  ];
+  buttons.forEach(btn => {
+    document.getElementById(btn.id)?.addEventListener('click', () => {
+      currentRotation = (currentRotation + btn.value + wheelConfig.globalDivisionCount) % wheelConfig.globalDivisionCount;
+      renderWheel();
+    });
+  });
+}
+
+// === T6 DATASET SWITCHING ===
+function setupT6Buttons() {
+  const options = wheelConfig.availableSources || [];
+  options.forEach(source => {
+    const button = document.getElementById(`t6-${source}`);
+    if (button) {
+      button.addEventListener('click', () => {
+        wheelConfig.tiers[6].labelListSource = source;
+        renderWheel();
+      });
+    }
+  });
+}
+
+// === TIER RENDERING FUNCTIONS ===
+// === TIER RENDERING FUNCTIONS ===
+function drawTier(svg, tierConfig, tierIndex, cx, cy, rotationOffset) {
+  // 1) Respect the 'visible' flag (instead of the old 'show')
+  if (!tierConfig.visible) return;
+
+  // 2) Figure out which label style to use
+  const styleType = tierConfig.labelStyle?.type || 'radial';
+
+  // 3a) Centered text (T0)
+  if (styleType === 'centered') {
+    drawCenteredText(svg, tierConfig, cx, cy);
+  }
+  // 3b) Arc text (T1 & T2)
+  else if (styleType === 'arcText') {
+    drawArcText(svg, tierConfig, cx, cy);
+  }
+  // 3c) Radial slices (T3–T6)
+  else {
+    drawRadialTier(svg, tierConfig, tierIndex, cx, cy, rotationOffset);
+  }
+}
+
+
+function drawCenteredText(svg, config, cx, cy) {
+  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.setAttribute('x', cx);
+  text.setAttribute('y', cy);
+  text.setAttribute('text-anchor', 'middle');
+  text.setAttribute('alignment-baseline', 'middle');
+  text.setAttribute('font-size', config.labelStyle.fontSize || 16);
+  text.setAttribute('font-weight', config.labelStyle.fontWeight || 'normal');
+  text.setAttribute('fill', config.labelStyle.color || '#000');
+  text.textContent = config.label;
+  svg.appendChild(text);
+}
+
+function drawArcText(svg, config, cx, cy) {
+  const radius = (config.outerRadius + config.innerRadius) / 2 + (config.radiusOffset || 0);
+  const pathId = `arcPath-${Math.random().toString(36).substr(2, 9)}`;
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const startAngle = 0;
+  const endAngle = 360;
+  const largeArc = endAngle - startAngle <= 180 ? 0 : 1;
+
+  const start = polarToCartesian(cx, cy, radius, endAngle);
+  const end = polarToCartesian(cx, cy, radius, startAngle);
+
+  const d = [
+    'M', start.x, start.y,
+    'A', radius, radius, 0, largeArc, 0, end.x, end.y
+  ].join(' ');
+
+  path.setAttribute('id', pathId);
+  path.setAttribute('d', d);
+  path.setAttribute('fill', 'none');
+  svg.appendChild(path);
+
+  const textPath = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
+  textPath.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${pathId}`);
+  textPath.setAttribute('startOffset', '50%');
+  textPath.setAttribute('text-anchor', 'middle');
+  textPath.setAttribute('font-size', config.labelStyle.fontSize || 16);
+  textPath.setAttribute('font-weight', config.labelStyle.fontWeight || 'normal');
+  textPath.setAttribute('fill', config.labelStyle.color || '#000');
+  textPath.textContent = config.label;
+
+  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.appendChild(textPath);
+  svg.appendChild(text);
+}
+
+function drawRadialTier(svg, config, tierIndex, cx, cy, rotationOffset) {
+  const count = config.divisionWeights.length;
+  const full = wheelConfig.globalDivisionCount;
+  let currentAngle = (rotationOffset * 360) / full;
+
+  for (let i = 0; i < count; i++) {
+    const weight = config.divisionWeights[i];
+    const angle = (weight / full) * 360;
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + angle;
+    currentAngle = endAngle;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const inner = config.innerRadius;
+    const outer = config.outerRadius;
+
+    const p1 = polarToCartesian(cx, cy, outer, startAngle);
+    const p2 = polarToCartesian(cx, cy, outer, endAngle);
+    const p3 = polarToCartesian(cx, cy, inner, endAngle);
+    const p4 = polarToCartesian(cx, cy, inner, startAngle);
+
+    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+
+    const d = [
+      'M', p1.x, p1.y,
+      'A', outer, outer, 0, largeArc, 1, p2.x, p2.y,
+      'L', p3.x, p3.y,
+      'A', inner, inner, 0, largeArc, 0, p4.x, p4.y,
+      'Z'
+    ].join(' ');
+
+    path.setAttribute('d', d);
+    path.setAttribute('fill', config.fill?.colors?.[i] || '#ccc');
+    path.setAttribute('stroke', config.stroke?.show ? '#000' : 'none');
+    path.setAttribute('stroke-width', config.stroke?.normal || 0.25);
+
+    svg.appendChild(path);
+
+    // Optional label (centered along arc)
+    if (config.labelList) {
+      const midAngle = (startAngle + endAngle) / 2;
+      const r = (inner + outer) / 2;
+      const labelPos = polarToCartesian(cx, cy, r + (config.labelStyle.offset || 0), midAngle);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', labelPos.x);
+      text.setAttribute('y', labelPos.y);
+      text.setAttribute('font-size', config.labelStyle.fontSize || 12);
+      text.setAttribute('fill', config.labelStyle.color || '#000');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('alignment-baseline', 'middle');
+      text.setAttribute('transform', `rotate(${midAngle}, ${labelPos.x}, ${labelPos.y})`);
+      text.textContent = config.labelList[i] || '';
+      svg.appendChild(text);
+    }
+  }
+}
+
+function polarToCartesian(cx, cy, r, angleDeg) {
+  const angleRad = (angleDeg - 90) * Math.PI / 180.0;
+  return {
+    x: cx + r * Math.cos(angleRad),
+    y: cy + r * Math.sin(angleRad)
+  };
+}
+
+// === INIT ===
+setupRotationButtons();
+setupT6Buttons();
+renderWheel();
