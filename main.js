@@ -12,8 +12,11 @@ function renderWheel() {
   const centerX = wheelConfig.centerX;
   const centerY = wheelConfig.centerY;
 
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  svg.appendChild(defs);
+
   for (let i = 0; i < wheelConfig.tiers.length; i++) {
-    drawTier(svg, wheelConfig.tiers[i], i, centerX, centerY, currentRotation);
+    drawTier(svg, wheelConfig.tiers[i], i, centerX, centerY, currentRotation, defs);
   }
 }
 
@@ -51,7 +54,7 @@ function setupT6Buttons() {
 
 // === TIER RENDERING FUNCTIONS ===
 // === TIER RENDERING FUNCTIONS ===
-function drawTier(svg, tierConfig, tierIndex, cx, cy, rotationOffset) {
+function drawTier(svg, tierConfig, tierIndex, cx, cy, rotationOffset, defs) {
   // 1) Respect the 'visible' flag (instead of the old 'show')
   if (!tierConfig.visible) return;
 
@@ -68,7 +71,7 @@ function drawTier(svg, tierConfig, tierIndex, cx, cy, rotationOffset) {
   }
   // 3c) Radial slices (T3–T6)
   else {
-    drawRadialTier(svg, tierConfig, tierIndex, cx, cy, rotationOffset);
+    drawRadialTier(svg, tierConfig, tierIndex, cx, cy, rotationOffset, defs);
   }
 }
 
@@ -124,7 +127,7 @@ function drawArcText(svg, config, cx, cy) {
   svg.appendChild(text);
 }
 
-function drawRadialTier(svg, config, tierIndex, cx, cy, rotationOffset) {
+function drawRadialTier(svg, config, tierIndex, cx, cy, rotationOffset, defs) {
   const count = config.divisionWeights.length;
   const full = wheelConfig.globalDivisionCount;
   let currentAngle = (rotationOffset * 360) / full;
@@ -156,7 +159,35 @@ function drawRadialTier(svg, config, tierIndex, cx, cy, rotationOffset) {
     ].join(' ');
 
     path.setAttribute('d', d);
-    path.setAttribute('fill', config.fill?.colors?.[i] || '#ccc');
+
+    let segmentFill = '#ccc';
+    if (config.fill?.mode === 'manual') {
+      segmentFill = config.fill.colorList?.[i] || segmentFill;
+    } else if (config.fill?.mode === 'gradient-manual') {
+      const pair = config.fill.gradientPairs?.[i];
+      if (pair && defs) {
+        const gradId = `grad-${tierIndex}-${i}`;
+        const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        grad.setAttribute('id', gradId);
+        grad.setAttribute('x1', '0%');
+        grad.setAttribute('y1', '0%');
+        grad.setAttribute('x2', '0%');
+        grad.setAttribute('y2', '100%');
+        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop1.setAttribute('offset', '0%');
+        stop1.setAttribute('stop-color', pair[0]);
+        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop2.setAttribute('offset', '100%');
+        stop2.setAttribute('stop-color', pair[1]);
+        grad.appendChild(stop1);
+        grad.appendChild(stop2);
+        defs.appendChild(grad);
+        segmentFill = `url(#${gradId})`;
+      }
+    } else if (config.fill?.colors?.[i]) {
+      segmentFill = config.fill.colors[i];
+    }
+    path.setAttribute('fill', segmentFill);
     path.setAttribute('stroke', config.stroke?.show ? '#000' : 'none');
     path.setAttribute('stroke-width', config.stroke?.normal || 0.25);
 
