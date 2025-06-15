@@ -90,11 +90,14 @@ inherit: Uses prior tier’s color at same index (T5, T6)
 
 divisionWeights[]: Every tier from T3–T6 uses manual arrays
 
-T3 = 10 weighted instincts (summing to 132)
+T3 = 10 weighted instincts (weights sum to 132)
 
 T4 = 33 behaviors × 4 divisions = 132
 
 T5/T6 = 132 divisions
+
+Slice angles are determined per tier by (weight / globalDivisionCount) × 360°, so higher
+weights produce wider segments.
 
 No calculations are auto-derived — all index math is hard-defined
 
