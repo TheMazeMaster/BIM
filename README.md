@@ -32,7 +32,6 @@ strokeDefaults: Defines normal and wide line width globally
 
 fontDefaults: Base font family and styling defaults
 
-colors.js: External color definitions for easy adjustment
 
 🎨 Color System
 
@@ -46,7 +45,7 @@ T6: mode: inherit from T5, with overlay: tint
 
 Transparent color: #00000000 or rgba(0,0,0,0)
 
-All colors declared in separate file for easy swapping
+Color palettes are defined in config.js for easy adjustment
 
 🔁 Label and Font Logic
 
