@@ -18,6 +18,11 @@ function renderWheel() {
   for (let i = 0; i < wheelConfig.tiers.length; i++) {
     drawTier(svg, wheelConfig.tiers[i], i, centerX, centerY, currentRotation, defs);
   }
+
+  // Draw any global overlays after tiers
+  if (Array.isArray(wheelConfig.overlays)) {
+    drawOverlays(svg, wheelConfig.overlays, centerX, centerY, defs);
+  }
 }
 
 // === ROTATION BUTTONS ===
@@ -204,6 +209,62 @@ function drawRadialTier(svg, config, tierIndex, cx, cy, rotationOffset, defs) {
       svg.appendChild(text);
     }
   }
+}
+
+function drawOverlays(svg, overlays, cx, cy, defs) {
+  overlays.forEach((ov, idx) => {
+    if (ov.type === 'radialGradient') {
+      const gradId = `ov-grad-${idx}`;
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+      grad.setAttribute('id', gradId);
+      grad.setAttribute('cx', cx);
+      grad.setAttribute('cy', cy);
+      grad.setAttribute('r', ov.radiusRange[1]);
+      grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+
+      const startOffset = (ov.radiusRange[0] / ov.radiusRange[1]) * 100;
+
+      const stop0 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop0.setAttribute('offset', '0%');
+      stop0.setAttribute('stop-color', ov.from);
+
+      const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop1.setAttribute('offset', `${startOffset}%`);
+      stop1.setAttribute('stop-color', ov.from);
+
+      const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      stop2.setAttribute('offset', '100%');
+      stop2.setAttribute('stop-color', ov.to);
+
+      grad.appendChild(stop0);
+      grad.appendChild(stop1);
+      grad.appendChild(stop2);
+      defs.appendChild(grad);
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', ringPath(cx, cy, ov.radiusRange[0], ov.radiusRange[1]));
+      path.setAttribute('fill', `url(#${gradId})`);
+      path.setAttribute('pointer-events', 'none');
+      svg.appendChild(path);
+    }
+  });
+}
+
+function ringPath(cx, cy, inner, outer) {
+  const startAngle = 0;
+  const endAngle = 359.9;
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  const p1 = polarToCartesian(cx, cy, outer, startAngle);
+  const p2 = polarToCartesian(cx, cy, outer, endAngle);
+  const p3 = polarToCartesian(cx, cy, inner, endAngle);
+  const p4 = polarToCartesian(cx, cy, inner, startAngle);
+  return [
+    'M', p1.x, p1.y,
+    'A', outer, outer, 0, largeArc, 1, p2.x, p2.y,
+    'L', p3.x, p3.y,
+    'A', inner, inner, 0, largeArc, 0, p4.x, p4.y,
+    'Z'
+  ].join(' ');
 }
 
 function polarToCartesian(cx, cy, r, angleDeg) {
