@@ -125,11 +125,12 @@ function drawArcText(svg, config, cx, cy) {
 function drawRadialTier(svg, config, tierIndex, cx, cy, rotationOffset) {
   const count = config.divisionWeights.length;
   const full = wheelConfig.globalDivisionCount;
+  const weightSum = config.divisionWeights.reduce((a, b) => a + b, 0);
   let currentAngle = (rotationOffset * 360) / full;
 
   for (let i = 0; i < count; i++) {
     const weight = config.divisionWeights[i];
-    const angle = (weight / full) * 360;
+    const angle = (weight / weightSum) * 360;
     const startAngle = currentAngle;
     const endAngle = currentAngle + angle;
     currentAngle = endAngle;
