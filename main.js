@@ -16,7 +16,11 @@ function renderWheel() {
   svg.appendChild(defs);
 
   for (let i = 0; i < wheelConfig.tiers.length; i++) {
-    drawTier(svg, wheelConfig.tiers[i], i, centerX, centerY, currentRotation, defs);
+    const tier = wheelConfig.tiers[i];
+    if (tier.labelListSource) {
+      tier.labelList = wheelData[tier.labelListSource];
+    }
+    drawTier(svg, tier, i, centerX, centerY, currentRotation, defs);
   }
 }
 
