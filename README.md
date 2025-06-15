@@ -104,7 +104,7 @@ labelList: Local list of strings or generated (e.g. T5 modifiers)
 
 labelListSource: Used in T6 to dynamically switch datasets
 
-availableSources: ["quotes", "emotions", "tone", "behavior", "thriveCounterQuote"]
+availableSources: ["quotes", "emotion", "tone", "behavior", "thriveCounter"]
 
 Data is modular — content can be swapped by toggling source
 
