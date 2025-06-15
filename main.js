@@ -154,7 +154,43 @@ function drawRadialTier(svg, config, tierIndex, cx, cy, rotationOffset) {
     ].join(' ');
 
     path.setAttribute('d', d);
-    path.setAttribute('fill', config.fill?.colors?.[i] || '#ccc');
+
+    // Determine fill style based on config.fill.mode
+    let fill = '#ccc';
+    const fillMode = config.fill?.mode;
+    if (fillMode === 'manual') {
+      fill = config.fill?.colorList?.[i] || fill;
+    } else if (fillMode === 'gradient-manual') {
+      const pair = config.fill?.gradientPairs?.[i];
+      if (pair) {
+        const gradientId = `grad-${tierIndex}-${i}`;
+        let defs = svg.querySelector('defs');
+        if (!defs) {
+          defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+          svg.insertBefore(defs, svg.firstChild);
+        }
+        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        gradient.setAttribute('id', gradientId);
+        gradient.setAttribute('x1', '0%');
+        gradient.setAttribute('y1', '0%');
+        gradient.setAttribute('x2', '100%');
+        gradient.setAttribute('y2', '0%');
+
+        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop1.setAttribute('offset', '0%');
+        stop1.setAttribute('stop-color', pair[0]);
+        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop2.setAttribute('offset', '100%');
+        stop2.setAttribute('stop-color', pair[1]);
+        gradient.appendChild(stop1);
+        gradient.appendChild(stop2);
+
+        defs.appendChild(gradient);
+        fill = `url(#${gradientId})`;
+      }
+    }
+
+    path.setAttribute('fill', fill);
     path.setAttribute('stroke', config.stroke?.show ? '#000' : 'none');
     path.setAttribute('stroke-width', config.stroke?.normal || 0.25);
 
