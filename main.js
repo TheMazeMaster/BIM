@@ -92,7 +92,9 @@ function drawArcText(svg, config, cx, cy) {
 
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const startAngle = 0;
-  const endAngle = 360;
+  // Use an end angle slightly less than 360° so the arc has a non-zero length
+  // when start and end points coincide.
+  const endAngle = startAngle + 359.9;
   const largeArc = endAngle - startAngle <= 180 ? 0 : 1;
 
   const start = polarToCartesian(cx, cy, radius, endAngle);
